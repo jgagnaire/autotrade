@@ -59,21 +59,27 @@ def get_stock_dataset(symbol, num_days_to_predict=7, make_predict_set=False):
     sbf120_df = download_stock_data('^SBF120', start_timestamp, end_timestamp)
     # Drop 'Volume' and 'Adj Close' features, meaningless regarding market indices
     drop_index_cols = ['Volume', 'Adj Close']
-    cac40_df.drop(drop_index_cols, axis=1, inplace=True)
-    sbf120_df.drop(drop_index_cols, axis=1, inplace=True)
-    # Prefix columns with index name
-    prefixed_cac_cols = []
-    prefixed_sbf_cols = []
-    for cac_col, sbf_col in zip(cac40_df.columns, sbf120_df.columns):
-        prefixed_cac_cols.append('cac40_' + cac_col)
-        prefixed_sbf_cols.append('sbf120_' + sbf_col)
-    cac40_df.columns = prefixed_cac_cols
-    sbf120_df.columns = prefixed_sbf_cols
-    # Add them to the main dataset
-    df = pd.concat([df, cac40_df], axis=1)
-    df = pd.concat([df, sbf120_df], axis=1)
+    if not cac40_df.empty:
+        cac40_df.drop(drop_index_cols, axis=1, inplace=True)
+        # Prefix columns with index name
+        prefixed_cac_cols = []
+        for cac_col in cac40_df.columns:
+            prefixed_cac_cols.append('cac40_' + cac_col)
+        cac40_df.columns = prefixed_cac_cols
+        # Add them to the main dataset
+        df = pd.concat([df, cac40_df], axis=1)
+    # Do the same with SBF120
+    if not sbf120_df.empty:
+        sbf120_df.drop(drop_index_cols, axis=1, inplace=True)
+        prefixed_sbf_cols = []
+        for sbf_col in sbf120_df.columns:
+            prefixed_sbf_cols.append('sbf120_' + sbf_col)
+        sbf120_df.columns = prefixed_sbf_cols
+        df = pd.concat([df, sbf120_df], axis=1)
 
-    # Fill NaNs with neutral values
+    # Fill inf values with NaNs, and then NaNs with neutral values
+    df.replace(np.inf, np.nan, inplace=True)
+    df.replace(-np.inf, np.nan, inplace=True)
     df.interpolate(axis=0, limit_direction='both', inplace=True)
 
     # Build target variable dataset
@@ -86,7 +92,7 @@ def get_stock_dataset(symbol, num_days_to_predict=7, make_predict_set=False):
     adjclose_df.columns = adjclose_cols
     # Drop rows with shifted NaN values
     adjclose_df.drop(adjclose_df.tail(i).index, inplace=True)
-    predict_set = df.tail(i).copy() if make_predict_set else None
+    predict_set = df.iloc[[-1]].copy() if make_predict_set else None
     df.drop(df.tail(i).index, inplace=True)
     return df, adjclose_df, predict_set
 
@@ -96,14 +102,14 @@ def stdev_root_mean_squared_error(y_true, y_pred):
 
 # This one returns the Mean Absolute Percentage Error, normalized by the true values
 # and expressed as a percentage
-def mean_asbsolute_percentage_error(y_true, y_pred):
+def mean_absolute_percentage_error(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 def get_metrics_list(y_true, y_pred, decimals=3):
     mse = round(mean_squared_error(y_true, y_pred), decimals)
     sd_rmse = round(stdev_root_mean_squared_error(y_true, y_pred), decimals)
     mae = round(mean_absolute_error(y_true, y_pred), decimals)
-    mape = round(mean_asbsolute_percentage_error(y_true, y_pred), decimals)
+    mape = round(mean_absolute_percentage_error(y_true, y_pred), decimals)
     return [mse, sd_rmse, mae, mape]
 
 # Function that trains n models, each predicting adjusted close for day + 1 to n
@@ -123,17 +129,21 @@ def train_predict(model_list, train_X, train_y, X_pred, y_scaler, num_days_to_pr
     predict_df = pd.DataFrame(columns=column_names)
     for i in range(num_days_to_predict):
         model_list[i].fit(train_X, train_y[:,i])
-        print('Preds for d+{}: {}'.format(i + 1, y_scaler.inverse_transform(model_list[i].predict(X_pred).reshape(1, -1))))
-
+        pred_array = np.zeros((len(X_pred), num_days_to_predict))
+        pred_array[0] = model_list[i].predict(X_pred)
+        unscaled_pred = y_scaler.inverse_transform(pred_array)
+        print('Prediction for D+{}: {:.4f}'.format(i + 1, unscaled_pred[0][0]))
 
 # MAIN
 
 # TODO: argument parsing for num_days_to_predict and stock symbol
-num_days_to_predict = 1
-X_df, y_df, predict_set = get_stock_dataset('DBV.PA', num_days_to_predict, make_predict_set=True)
+num_days_to_predict = 7
+symbol = 'SAF.PA'
+
+X_df, y_df, predict_set = get_stock_dataset(symbol, num_days_to_predict, make_predict_set=True)
 
 print('')
-print('Predicting for dates {}'.format(str(predict_set.index.values)))
+print('Predicting {} up to d+{} from day {}'.format(symbol, num_days_to_predict, str(predict_set.index.values)))
 print('')
 
 # Normalize dataset
@@ -161,10 +171,14 @@ for i in range(num_days_to_predict):
 print('')
 print('Performance of LinearRegression:')
 linear_preds_list = train_eval(linear_models_list, train_X, train_y, test_X, test_y, num_days_to_predict)
+print('')
+
 # Predict values we're interested in
 for i, model in enumerate(linear_models_list):
-    unscaled_pred = y_scaler.inverse_transform(model.predict(X_pred).reshape(1, -1))
-    print('Prediction for D+{}: {}'.format(i + 1, unscaled_pred))
+    pred_array = np.zeros((len(X_pred), num_days_to_predict))
+    pred_array[0] = model.predict(X_pred)
+    unscaled_pred = y_scaler.inverse_transform(pred_array)
+    print('Prediction for D+{}: {:.4f}'.format(i + 1, unscaled_pred[0][0]))
 print('')
 
 # Train and test KernelRidge model
@@ -174,10 +188,14 @@ for i in range(num_days_to_predict):
 print('')
 print('Performance of KernelRidge on original dataset:')
 kr_preds_list = train_eval(kr_models_list, train_X, train_y, test_X, test_y, num_days_to_predict)
+print('')
+
 # Predict values we're interested in
 for i, model in enumerate(kr_models_list):
-    unscaled_pred = y_scaler.inverse_transform(model.predict(X_pred).reshape(1, -1))
-    print('Prediction for D+{}: {}'.format(i + 1, unscaled_pred))
+    pred_array = np.zeros((len(X_pred), num_days_to_predict))
+    pred_array[0] = model.predict(X_pred)
+    unscaled_pred = y_scaler.inverse_transform(pred_array)
+    print('Prediction for D+{}: {:.4f}'.format(i + 1, unscaled_pred[0][0]))
 print('')
 print('')
 
@@ -190,4 +208,7 @@ train_predict(linear_models_list, X_scaled, y_scaled, X_pred, y_scaler, num_days
 print('')
 print('predictions of kernel ridge model:')
 train_predict(kr_models_list, X_scaled, y_scaled, X_pred, y_scaler, num_days_to_predict)
+print('')
+print('Last known price:')
+print('{}'.format(predict_set.iloc[[-1]]['Adj Close']))
 print('')
