@@ -5,5 +5,6 @@ Use supervised Machine Learning models LinearRegression and KernelRidge to predi
 ```
 conda create --name autotrade python=3
 conda activate autotrade
+pip install -r requirements.txt
 python train_predict.py
 ```
