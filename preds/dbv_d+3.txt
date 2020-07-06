@@ -1,0 +1,123 @@
+
+Predicting DBV.PA up to d+3 from day ['2020-07-03T00:00:00.000000000']
+
+
+Last day of training set: 2019-09-10 00:00:00
+
+
+Performance of LinearRegression:
+       MSE SD-RMSE    MAE     MAPE
+d+1      0   0.263  0.012  137.606
+d+2  0.001   0.413  0.019  220.492
+d+3  0.001   0.576  0.027  320.558
+
+Prediction for D+1: 8.0797
+Prediction for D+2: 8.2340
+Prediction for D+3: 7.9227
+
+
+Performance of KernelRidge on original dataset:
+    MSE SD-RMSE    MAE     MAPE
+d+1   0   0.185  0.008   50.534
+d+2   0   0.273  0.012   71.981
+d+3   0   0.352  0.016  116.063
+
+Prediction for D+1: 8.4074
+Prediction for D+2: 8.6696
+Prediction for D+3: 8.6113
+
+
+
+Now retraining models on complete recent data, future closing prices will be the testing set
+Last day of training set: 2020-06-30 00:00:00
+
+Training on the last 10 days
+	Linear model:
+Prediction for D+1: 9.3903
+Prediction for D+2: 9.3901
+Prediction for D+3: 9.1227
+
+	Kernel ridge model:
+Prediction for D+1: 8.6855
+Prediction for D+2: 8.9200
+Prediction for D+3: 8.3776
+
+
+Training on the last 20 days
+	Linear model:
+Prediction for D+1: 9.8778
+Prediction for D+2: 9.4250
+Prediction for D+3: 10.1730
+
+	Kernel ridge model:
+Prediction for D+1: 8.6177
+Prediction for D+2: 8.7759
+Prediction for D+3: 8.4563
+
+
+Training on the last 30 days
+	Linear model:
+Prediction for D+1: 9.6712
+Prediction for D+2: 8.6506
+Prediction for D+3: 9.9712
+
+	Kernel ridge model:
+Prediction for D+1: 8.6267
+Prediction for D+2: 8.7216
+Prediction for D+3: 8.7220
+
+
+Training on the last 60 days
+	Linear model:
+Prediction for D+1: 11.5071
+Prediction for D+2: 12.2446
+Prediction for D+3: -15.0986
+
+	Kernel ridge model:
+Prediction for D+1: 9.1612
+Prediction for D+2: 9.0844
+Prediction for D+3: 9.2698
+
+
+Training on the last 90 days
+	Linear model:
+Prediction for D+1: 40.8563
+Prediction for D+2: -30.4628
+Prediction for D+3: -13.5250
+
+	Kernel ridge model:
+Prediction for D+1: 7.6826
+Prediction for D+2: 7.6909
+Prediction for D+3: 8.4713
+
+
+Training on the last 150 days
+	Linear model:
+Prediction for D+1: 9.5882
+Prediction for D+2: 0.2451
+Prediction for D+3: 14.5893
+
+	Kernel ridge model:
+Prediction for D+1: 8.2207
+Prediction for D+2: 8.2007
+Prediction for D+3: 8.7677
+
+
+Training on the last 2052 days
+	Linear model:
+Prediction for D+1: 0.4905
+Prediction for D+2: -3.3846
+Prediction for D+3: -6.8190
+
+	Kernel ridge model:
+Prediction for D+1: 5.5855
+Prediction for D+2: 5.5351
+Prediction for D+3: 5.5175
+
+
+
+Last known price:
+Date
+2020-07-03    8.145
+Name: Adj Close, dtype: float64
+

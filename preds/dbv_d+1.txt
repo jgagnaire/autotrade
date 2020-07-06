@@ -1,0 +1,87 @@
+
+Predicting DBV.PA up to d+1 from day ['2020-07-03T00:00:00.000000000']
+
+
+Last day of training set: 2019-09-05 00:00:00
+
+
+Performance of LinearRegression:
+    MSE SD-RMSE    MAE     MAPE
+d+1   0   0.244  0.011  114.306
+
+Prediction for D+1: 8.2531
+
+
+Performance of KernelRidge on original dataset:
+    MSE SD-RMSE    MAE    MAPE
+d+1   0   0.189  0.008  46.921
+
+Prediction for D+1: 8.6252
+
+
+
+Now retraining models on complete recent data, future closing prices will be the testing set
+Last day of training set: 2020-07-02 00:00:00
+
+Training on the last 10 days
+	Linear model:
+Prediction for D+1: 8.6738
+
+	Kernel ridge model:
+Prediction for D+1: 8.4919
+
+
+Training on the last 20 days
+	Linear model:
+Prediction for D+1: 8.9965
+
+	Kernel ridge model:
+Prediction for D+1: 8.5126
+
+
+Training on the last 30 days
+	Linear model:
+Prediction for D+1: 9.5222
+
+	Kernel ridge model:
+Prediction for D+1: 8.4171
+
+
+Training on the last 60 days
+	Linear model:
+Prediction for D+1: 9.6383
+
+	Kernel ridge model:
+Prediction for D+1: 9.0288
+
+
+Training on the last 90 days
+	Linear model:
+Prediction for D+1: 9.9164
+
+	Kernel ridge model:
+Prediction for D+1: 7.2747
+
+
+Training on the last 150 days
+	Linear model:
+Prediction for D+1: 9.0752
+
+	Kernel ridge model:
+Prediction for D+1: 7.9373
+
+
+Training on the last 2108 days
+	Linear model:
+Prediction for D+1: 2.4545
+
+	Kernel ridge model:
+Prediction for D+1: 5.9898
+
+
+
+Last known price:
+Date
+2020-07-03    8.145
+Name: Adj Close, dtype: float64
+

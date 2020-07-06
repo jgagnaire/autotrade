@@ -1,0 +1,195 @@
+
+Predicting DBV.PA up to d+7 from day ['2020-07-03T00:00:00.000000000']
+
+
+Last day of training set: 2019-08-28 00:00:00
+
+
+Performance of LinearRegression:
+       MSE SD-RMSE    MAE     MAPE
+d+1      0   0.256  0.011  119.328
+d+2  0.001   0.396  0.018  177.899
+d+3  0.001   0.542  0.025  260.261
+d+4  0.002   0.714  0.033  326.744
+d+5  0.003   0.924  0.043   424.04
+d+6  0.004   1.147  0.054   496.28
+d+7  0.006   1.373  0.064  552.694
+
+Prediction for D+1: 8.1337
+Prediction for D+2: 8.4286
+Prediction for D+3: 8.2828
+Prediction for D+4: 7.9219
+Prediction for D+5: 6.9485
+Prediction for D+6: 5.9903
+Prediction for D+7: 5.2247
+
+
+Performance of KernelRidge on original dataset:
+       MSE SD-RMSE    MAE     MAPE
+d+1      0   0.189  0.008   43.927
+d+2      0    0.28  0.012   51.932
+d+3      0   0.358  0.016   67.779
+d+4  0.001   0.444  0.021  102.558
+d+5  0.001   0.537  0.026   136.73
+d+6  0.001   0.629  0.031  162.561
+d+7  0.002   0.725  0.036  194.775
+
+Prediction for D+1: 8.5527
+Prediction for D+2: 8.7961
+Prediction for D+3: 8.7002
+Prediction for D+4: 8.5674
+Prediction for D+5: 8.3583
+Prediction for D+6: 8.1385
+Prediction for D+7: 7.8879
+
+
+
+Now retraining models on complete recent data, future closing prices will be the testing set
+Last day of training set: 2020-06-24 00:00:00
+
+Training on the last 10 days
+	Linear model:
+Prediction for D+1: 9.7630
+Prediction for D+2: 9.9215
+Prediction for D+3: 9.8111
+Prediction for D+4: 9.8788
+Prediction for D+5: 9.8745
+Prediction for D+6: 10.1896
+Prediction for D+7: 10.1039
+
+	Kernel ridge model:
+Prediction for D+1: 9.6119
+Prediction for D+2: 9.8114
+Prediction for D+3: 9.7119
+Prediction for D+4: 9.7602
+Prediction for D+5: 9.7662
+Prediction for D+6: 9.7978
+Prediction for D+7: 9.8249
+
+
+Training on the last 20 days
+	Linear model:
+Prediction for D+1: 10.3166
+Prediction for D+2: 10.1630
+Prediction for D+3: 10.9184
+Prediction for D+4: 8.0896
+Prediction for D+5: 10.2706
+Prediction for D+6: 8.3719
+Prediction for D+7: 11.2355
+
+	Kernel ridge model:
+Prediction for D+1: 9.2872
+Prediction for D+2: 9.3309
+Prediction for D+3: 9.0120
+Prediction for D+4: 9.1576
+Prediction for D+5: 9.3196
+Prediction for D+6: 9.0305
+Prediction for D+7: 9.0943
+
+
+Training on the last 30 days
+	Linear model:
+Prediction for D+1: 14.2652
+Prediction for D+2: 7.5926
+Prediction for D+3: 8.5793
+Prediction for D+4: 4.3482
+Prediction for D+5: 9.9081
+Prediction for D+6: 7.5400
+Prediction for D+7: 13.4223
+
+	Kernel ridge model:
+Prediction for D+1: 9.6540
+Prediction for D+2: 8.9562
+Prediction for D+3: 9.0396
+Prediction for D+4: 8.9453
+Prediction for D+5: 9.2454
+Prediction for D+6: 8.9098
+Prediction for D+7: 9.1866
+
+
+Training on the last 60 days
+	Linear model:
+Prediction for D+1: 28.0919
+Prediction for D+2: 33.3116
+Prediction for D+3: 7.5786
+Prediction for D+4: -1.8884
+Prediction for D+5: 22.9366
+Prediction for D+6: 4.0710
+Prediction for D+7: 20.2281
+
+	Kernel ridge model:
+Prediction for D+1: 9.2205
+Prediction for D+2: 9.5518
+Prediction for D+3: 10.0592
+Prediction for D+4: 9.7448
+Prediction for D+5: 9.7909
+Prediction for D+6: 9.0227
+Prediction for D+7: 9.8633
+
+
+Training on the last 90 days
+	Linear model:
+Prediction for D+1: 20.7894
+Prediction for D+2: -30.2812
+Prediction for D+3: -23.9732
+Prediction for D+4: 110.9506
+Prediction for D+5: 34.6597
+Prediction for D+6: 34.4920
+Prediction for D+7: -29.8595
+
+	Kernel ridge model:
+Prediction for D+1: 7.6045
+Prediction for D+2: 7.3686
+Prediction for D+3: 8.1030
+Prediction for D+4: 7.5256
+Prediction for D+5: 7.6485
+Prediction for D+6: 8.5851
+Prediction for D+7: 10.5223
+
+
+Training on the last 150 days
+	Linear model:
+Prediction for D+1: 15.0211
+Prediction for D+2: -3.0011
+Prediction for D+3: 1.6470
+Prediction for D+4: 3.7883
+Prediction for D+5: 5.7575
+Prediction for D+6: 18.3625
+Prediction for D+7: 8.9381
+
+	Kernel ridge model:
+Prediction for D+1: 8.0706
+Prediction for D+2: 7.8253
+Prediction for D+3: 8.3717
+Prediction for D+4: 7.9058
+Prediction for D+5: 7.8574
+Prediction for D+6: 8.2971
+Prediction for D+7: 9.9646
+
+
+Training on the last 2102 days
+	Linear model:
+Prediction for D+1: 2.6308
+Prediction for D+2: 3.7744
+Prediction for D+3: 5.0224
+Prediction for D+4: 7.2567
+Prediction for D+5: 8.6411
+Prediction for D+6: 11.0618
+Prediction for D+7: 12.0053
+
+	Kernel ridge model:
+Prediction for D+1: 5.9784
+Prediction for D+2: 5.9462
+Prediction for D+3: 5.9571
+Prediction for D+4: 6.1156
+Prediction for D+5: 6.2260
+Prediction for D+6: 6.2139
+Prediction for D+7: 6.3353
+
+
+
+Last known price:
+Date
+2020-07-03    8.145
+Name: Adj Close, dtype: float64
+

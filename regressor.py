@@ -20,7 +20,7 @@ def get_last_close_timestamp():
 
     # If market is currently opened, return yesterday's post-close timestamp
     today_market_close = current_time.replace(hour=18, minute=0, second=0, microsecond=0)
-    if now < today_market_close:
+    if current_time < today_market_close:
         yesterday_market_close = (current_time - timedelta(days=1)).replace(hour=18, minute=0, second=0, microsecond=0)
         return int(yesterday_market_close.timestamp())
 
@@ -77,7 +77,7 @@ def get_stock_dataset(symbol, num_days_to_predict=7, make_predict_set=False):
         sbf120_df.columns = prefixed_sbf_cols
         df = pd.concat([df, sbf120_df], axis=1)
 
-    # Fill inf values with NaNs, and then NaNs with neutral values
+    # Fill inf values with NaNs, and then NaNs with interpolated values
     df.replace(np.inf, np.nan, inplace=True)
     df.replace(-np.inf, np.nan, inplace=True)
     df.interpolate(axis=0, limit_direction='both', inplace=True)
@@ -94,6 +94,7 @@ def get_stock_dataset(symbol, num_days_to_predict=7, make_predict_set=False):
     adjclose_df.drop(adjclose_df.tail(i).index, inplace=True)
     predict_set = df.iloc[[-1]].copy() if make_predict_set else None
     df.drop(df.tail(i).index, inplace=True)
+
     return df, adjclose_df, predict_set
 
 # This function returns the Root Mean Squared Error, normalized by Standard-Deviation
@@ -124,11 +125,11 @@ def train_eval(model_list, train_X, train_y, test_X, test_y, num_days_to_predict
     print(metrics_df)
     return preds_list
 
-def train_predict(model_list, train_X, train_y, X_pred, y_scaler, num_days_to_predict=7):
+def train_predict(model_list, X, y, X_pred, y_scaler, num_days_to_predict=7):
     column_names = [str('d+{}'.format(i)) for i in range(1, num_days_to_predict + 1)]
     predict_df = pd.DataFrame(columns=column_names)
     for i in range(num_days_to_predict):
-        model_list[i].fit(train_X, train_y[:,i])
+        model_list[i].fit(X, y[:,i])
         pred_array = np.zeros((len(X_pred), num_days_to_predict))
         pred_array[0] = model_list[i].predict(X_pred)
         unscaled_pred = y_scaler.inverse_transform(pred_array)
@@ -137,8 +138,8 @@ def train_predict(model_list, train_X, train_y, X_pred, y_scaler, num_days_to_pr
 # MAIN
 
 # TODO: argument parsing for num_days_to_predict and stock symbol
-num_days_to_predict = 7
-symbol = 'SAF.PA'
+num_days_to_predict = 1
+symbol = 'ETL.PA'
 
 X_df, y_df, predict_set = get_stock_dataset(symbol, num_days_to_predict, make_predict_set=True)
 
@@ -146,19 +147,22 @@ print('')
 print('Predicting {} up to d+{} from day {}'.format(symbol, num_days_to_predict, str(predict_set.index.values)))
 print('')
 
-# Normalize dataset
-X_scaler = MinMaxScaler().fit(X_df.values)
-y_scaler = MinMaxScaler().fit(y_df.values)
-X_scaled = X_scaler.transform(X_df.values)
-y_scaled = y_scaler.transform(y_df.values)
-
-# Normalize prediction set
-X_pred = X_scaler.transform(predict_set.values)
-
 # Split dataset into 90-10% training-testing sets:
-train_size = int(len(X_scaled) * 0.90)
-train_X, test_X = X_scaled[0:train_size], X_scaled[train_size:len(X_scaled)]
-train_y, test_y = y_scaled[0:train_size], y_scaled[train_size:len(y_scaled)]
+train_size = int(len(X_df) * 0.90)
+train_X, test_X = X_df.iloc[0:train_size], X_df.iloc[train_size:-1]
+train_y, test_y = y_df.iloc[0:train_size], y_df.iloc[train_size:-1]
+
+# Normalize datasets
+X_scaler = MinMaxScaler().fit(train_X.values)
+y_scaler = MinMaxScaler().fit(train_y.values)
+
+train_X_scaled = X_scaler.transform(train_X.values)
+train_y_scaled = y_scaler.transform(train_y.values)
+
+test_X_scaled = X_scaler.transform(test_X.values)
+test_y_scaled = y_scaler.transform(test_y.values)
+
+X_pred = X_scaler.transform(predict_set.values)
 
 print('')
 print('Last day of training set: {}'.format(X_df.index[train_size]))
@@ -170,7 +174,7 @@ for i in range(num_days_to_predict):
     linear_models_list.append(LinearRegression())
 print('')
 print('Performance of LinearRegression:')
-linear_preds_list = train_eval(linear_models_list, train_X, train_y, test_X, test_y, num_days_to_predict)
+linear_preds_list = train_eval(linear_models_list, train_X_scaled, train_y_scaled, test_X_scaled, test_y_scaled, num_days_to_predict)
 print('')
 
 # Predict values we're interested in
@@ -187,7 +191,7 @@ for i in range(num_days_to_predict):
     kr_models_list.append(KernelRidge())
 print('')
 print('Performance of KernelRidge on original dataset:')
-kr_preds_list = train_eval(kr_models_list, train_X, train_y, test_X, test_y, num_days_to_predict)
+kr_preds_list = train_eval(kr_models_list, train_X_scaled, train_y_scaled, test_X_scaled, test_y_scaled, num_days_to_predict)
 print('')
 
 # Predict values we're interested in
@@ -200,14 +204,26 @@ print('')
 print('')
 
 print('')
-print('Now retraining models on complete data, with no testing set, for more accurate preds')
-print('Last day of training set: {}'.format(X_df.index[len(X_scaled) - 1]))
+print('Now retraining models on complete recent data, future closing prices will be the testing set')
+print('Last day of training set: {}'.format(X_df.index[len(X_df) - 1]))
 print('')
-print('predictions of linear model:')
-train_predict(linear_models_list, X_scaled, y_scaled, X_pred, y_scaler, num_days_to_predict)
-print('')
-print('predictions of kernel ridge model:')
-train_predict(kr_models_list, X_scaled, y_scaled, X_pred, y_scaler, num_days_to_predict)
+num_days_train_data = [10, 20, 30, 60, 90, 150, len(X_df)]
+for num_days_training in num_days_train_data:
+    recent_X_df = X_df.tail(num_days_training)
+    recent_y_df = y_df.tail(num_days_training)
+    X_scaler = MinMaxScaler().fit(recent_X_df.values)
+    y_scaler = MinMaxScaler().fit(recent_y_df.values)
+    X_scaled = X_scaler.transform(recent_X_df.values)
+    y_scaled = y_scaler.transform(recent_y_df.values)
+    print('Training on the last {} days'.format(num_days_training))
+    print('\tLinear model:')
+    train_predict(linear_models_list, X_scaled, y_scaled, X_pred, y_scaler, num_days_to_predict)
+    print('')
+    print('\tKernel ridge model:')
+    train_predict(kr_models_list, X_scaled, y_scaled, X_pred, y_scaler, num_days_to_predict)
+    print('')
+    print('')
+
 print('')
 print('Last known price:')
 print('{}'.format(predict_set.iloc[[-1]]['Adj Close']))
