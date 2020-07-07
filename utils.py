@@ -96,25 +96,3 @@ def split_dataset(X_df, y_df, train_size=0.9, do_shuffle=False):
     train_X, test_X = X_df.iloc[0:train_data_size].astype(float), X_df.iloc[train_data_size:-1].astype(float)
     train_y, test_y = y_df.iloc[0:train_data_size].astype(float), y_df.iloc[train_data_size:-1].astype(float)
     return train_X, train_y, test_X, test_y
-
-def plot_feature_importance(importances, X_train):
-    # Display the five most important features
-    indices = np.argsort(importances)[::-1]
-    columns = X_train.columns.values[indices[:11]]
-    values = importances[indices][:11]
-
-    sns.set()
-    sns.set_style("whitegrid")
-
-    # Creat the plot
-    fig = plt.figure(figsize = (12,5))
-    plt.title("Normalized weights for top 5 most predictive features", fontsize = 16)
-    plt.bar(np.arange(11), values, width = 0.2, align="center", label = "Feature weight")
-    plt.xticks(np.arange(11), columns)
-    plt.xlim((-0.5, 4.5))
-    plt.ylabel("Weight", fontsize = 12)
-    plt.xlabel("Feature", fontsize = 12)
-    
-    plt.legend(loc = 'upper center')
-    plt.tight_layout()
-    plt.show()  
