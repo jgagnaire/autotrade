@@ -1,9 +1,12 @@
+from sklearn.utils import shuffle
 import pandas as pd
 import numpy as np
 import os
 import requests
 import ta
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def get_last_close_timestamp():
     # If today is a weekend day, return today's timestamp
@@ -71,6 +74,7 @@ def get_stock_feature_dataset(symbol):
         df = pd.concat([df, sbf120_df], axis=1)
 
     # Fill inf values with NaNs, and then NaNs with interpolated values
+    df = df.astype(float)
     df.replace(np.inf, np.nan, inplace=True)
     df.replace(-np.inf, np.nan, inplace=True)
     df.interpolate(axis=0, limit_direction='both', inplace=True)
@@ -84,3 +88,33 @@ def stdev_root_mean_squared_error(y_true, y_pred):
 # and expressed as a percentage
 def mean_absolute_percentage_error(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
+def split_dataset(X_df, y_df, train_size=0.9, do_shuffle=False):
+    if do_shuffle:
+        X_df, y_df = shuffle(X_df, y_df)
+    train_data_size = int(len(X_df) * train_size)
+    train_X, test_X = X_df.iloc[0:train_data_size].astype(float), X_df.iloc[train_data_size:-1].astype(float)
+    train_y, test_y = y_df.iloc[0:train_data_size].astype(float), y_df.iloc[train_data_size:-1].astype(float)
+    return train_X, train_y, test_X, test_y
+
+def plot_feature_importance(importances, X_train):
+    # Display the five most important features
+    indices = np.argsort(importances)[::-1]
+    columns = X_train.columns.values[indices[:11]]
+    values = importances[indices][:11]
+
+    sns.set()
+    sns.set_style("whitegrid")
+
+    # Creat the plot
+    fig = plt.figure(figsize = (12,5))
+    plt.title("Normalized weights for top 5 most predictive features", fontsize = 16)
+    plt.bar(np.arange(11), values, width = 0.2, align="center", label = "Feature weight")
+    plt.xticks(np.arange(11), columns)
+    plt.xlim((-0.5, 4.5))
+    plt.ylabel("Weight", fontsize = 12)
+    plt.xlabel("Feature", fontsize = 12)
+    
+    plt.legend(loc = 'upper center')
+    plt.tight_layout()
+    plt.show()  

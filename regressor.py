@@ -63,9 +63,7 @@ print('Predicting {} up to d+{} from day {}'.format(symbol, num_days_to_predict,
 print('')
 
 # Split dataset into 90-10% training-testing sets:
-train_size = int(len(X_df) * 0.90)
-train_X, test_X = X_df.iloc[0:train_size], X_df.iloc[train_size:-1]
-train_y, test_y = y_df.iloc[0:train_size], y_df.iloc[train_size:-1]
+train_X, train_y, test_X, test_y = utils.split_dataset(X_df, y_df, train_size=0.9)
 
 # Normalize datasets
 X_scaler = MinMaxScaler().fit(train_X.values)
