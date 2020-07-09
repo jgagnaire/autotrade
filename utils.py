@@ -41,18 +41,20 @@ def download_stock_data(symbol, start=None, end=None):
         print(response.content)
         raise
 
-def get_stock_feature_dataset(symbol):
+def get_stock_feature_dataset(symbol, start=None, end=None):
     # Download stock historical data in a DataFrame
-    df = download_stock_data(symbol)
+    df = download_stock_data(symbol, start, end)
 
     # Add technical analysis indicators as features
     df = ta.add_all_ta_features(df, open='Open', high='High', low='Low', close='Close', volume='Volume')
 
     # Add historical data for major indices as features
-    start_timestamp = datetime.timestamp(df.index[0])
-    end_timestamp = datetime.timestamp(df.index[-1])
-    cac40_df = download_stock_data('^FCHI', start_timestamp, end_timestamp)
-    sbf120_df = download_stock_data('^SBF120', start_timestamp, end_timestamp)
+    if not start:
+        start = datetime.timestamp(df.index[0])
+    if not end:
+        end = datetime.timestamp(df.index[-1])
+    cac40_df = download_stock_data('^FCHI', start, end)
+    sbf120_df = download_stock_data('^SBF120', start, end)
     # Drop 'Volume' and 'Adj Close' features, meaningless regarding market indices
     drop_index_cols = ['Volume', 'Adj Close']
     if not cac40_df.empty:
@@ -79,6 +81,23 @@ def get_stock_feature_dataset(symbol):
     df.replace(-np.inf, np.nan, inplace=True)
     df.interpolate(axis=0, limit_direction='both', inplace=True)
     return df
+
+def make_labels_dataset(X_df, increase=0.05, label_name='increase_tomorrow'):
+    '''
+        increase: float between 0 and 1, equivalent to the desired % increase when multiplied by 100
+        label_name: name for the column containing labels
+    '''
+
+    # Build the target dataset: label 1 if stock price increased by 5% or more in the following days, 0 otherwise
+    y_df = pd.DataFrame(index=X_df.index, columns=[label_name])
+    for i in range(len(X_df) - 1):
+        increase_threshold = X_df['Adj Close'].iloc[i] + increase * X_df['Adj Close'].iloc[i]
+        y_df.iloc[i] = 1 if X_df['Adj Close'].iloc[i+1] > increase_threshold else 0
+
+    # Drop last row, for which there is no label
+    X_df.drop(X_df.tail(1).index, inplace=True)
+    y_df.drop(y_df.tail(1).index, inplace=True)
+    return X_df, y_df
 
 # This function returns the Root Mean Squared Error, normalized by Standard-Deviation
 def stdev_root_mean_squared_error(y_true, y_pred):
