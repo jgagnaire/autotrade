@@ -6,7 +6,6 @@ import requests
 import ta
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 def get_last_close_timestamp():
     # If today is a weekend day, return today's timestamp
@@ -27,7 +26,7 @@ def get_last_close_timestamp():
 def download_stock_data(symbol, start=None, end=None):
     filepath = os.path.join(os.getcwd(), 'historical-data_{}.csv'.format(symbol))
     if not start:
-        start = 636278400 # oldest CAC40 quotation date - March 1st 1990 8am
+        start = 636278400 # oldest CAC40 quotation date - March 1st 1990 at 8.00am
     if not end:
         end = get_last_close_timestamp()
     url = 'http://query1.finance.yahoo.com/v7/finance/download/{}?period1={:d}&period2={:d}&interval=1d&events=history'.format(symbol, int(start), int(end))
